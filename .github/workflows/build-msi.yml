@@ -1,0 +1,115 @@
+name: Build Syncthing MSI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Download WiX Toolset
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip" `
+            -OutFile "wix.zip"
+
+      - name: Extract WiX
+        run: Expand-Archive wix.zip -DestinationPath wix
+
+      - name: Get latest Syncthing release tag
+        id: syncthing_version
+        run: |
+          $tag = (Invoke-RestMethod -Uri https://api.github.com/repos/syncthing/syncthing/releases/latest).tag_name
+          echo "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Download Syncthing ZIP
+        run: |
+          $TAG = "${{ steps.syncthing_version.outputs.tag }}"
+          $FILENAME = "syncthing-windows-amd64-$TAG.zip"
+          Invoke-WebRequest `
+            -Uri "https://github.com/syncthing/syncthing/releases/download/$TAG/$FILENAME" `
+            -OutFile "syncthing.zip"
+
+      - name: Extract Syncthing
+        run: Expand-Archive syncthing.zip -DestinationPath syncthing
+
+      - name: Copy Syncthing files into SourceDir
+        run: |
+          Copy-Item syncthing\*\syncthing.exe SourceDir\
+          Copy-Item syncthing\*\AUTHORS.txt SourceDir\
+          Copy-Item syncthing\*\LICENSE.txt SourceDir\
+          Copy-Item syncthing\*\README.txt SourceDir\
+
+      - name: Download NSSM
+        run: |
+          $NSSM = "nssm-2.24-101-g897c7ad.zip"
+          Invoke-WebRequest `
+            -Uri "https://nssm.cc/ci/$NSSM" `
+            -OutFile "nssm.zip"
+
+      - name: Extract NSSM
+        run: Expand-Archive nssm.zip -DestinationPath nssm
+
+      - name: Copy NSSM to SourceDir
+        run: Copy-Item nssm\**\win32\nssm.exe SourceDir\nssm_x86.exe
+
+      - name: Read ProductVersion from syncthing.exe
+        id: product_version
+        run: |
+          $v = (Get-Item "SourceDir/syncthing.exe").VersionInfo.ProductVersion
+          echo "pv=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Replace version placeholder in WXS
+        run: |
+          $v = "${{ steps.product_version.outputs.pv }}"
+          (Get-Content Syncthing.wxs.template) `
+            -replace "BATCH_PRODUCTVERSION", $v `
+            | Set-Content Syncthing.wxs
+
+      - name: Run Candle
+        run: |
+          wix\candle.exe -nologo `
+            -out Syncthing.wixobj `
+            -ext WixUiExtension -ext WixUtilExtension `
+            Syncthing.wxs -sw1150
+
+      - name: Run Light (create MSI)
+        run: |
+          wix\light.exe -nologo Syncthing.wixobj `
+            -out Syncthing.msi `
+            -ext WixUiExtension -ext WixUtilExtension `
+            -sw1076 -sval
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: syncthing-msi
+          path: Syncthing.msi
+
+      - name: Create GitHub Release Draft
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: true
+          prerelease: false
+          tag_name: "v${{ steps.product_version.outputs.pv }}"
+          release_name: "Syncthing MSI v${{ steps.product_version.outputs.pv }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload MSI to GitHub Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "./Syncthing.msi"
+          asset_name: "Syncthing_v${{ steps.product_version.outputs.pv }}.msi"
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
