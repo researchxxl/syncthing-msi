@@ -6,6 +6,20 @@ You may set registry keys to change Syncthing's default settings for a new confi
 - Windows 10, 11
 - 64 Bit OS
 
+### Installation
+
+- Run MSI
+- Open start menu --> Programs --> Syncthing --> Syncthing Web UI
+
+### FAQ
+
+- Syncthing cannot access a directory, e.g. a subdirectory of C:\Users
+  - Open command line as admin
+  - Grant access to the Syncthing service
+    ```
+    "%ProgramFiles%\Syncthing\syncthing_grant_folder_access.cmd" "C:\Users\%USERNAME%\Documents"
+    ```
+
 ### The generated installer package contains:
 
 - [Syncthing release](https://github.com/syncthing/syncthing/releases)
