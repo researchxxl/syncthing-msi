@@ -72,8 +72,6 @@
 				<File Id="SYNCTHING_GRANT_FOLDER_ACCESS.CMD" Name="syncthing_grant_folder_access.cmd" Source="SourceDir\syncthing_grant_folder_access.cmd" />
 				<File Id="SYNCTHING_REMOVE.CMD" Name="syncthing_remove.cmd" Source="SourceDir\syncthing_remove.cmd" />
 				<File Id="SYNCTHING_SERVICE.CMD" Name="syncthing_service.cmd" Source="SourceDir\syncthing_service.cmd" />
-				<File Id="SYNCTHING_STRECHECKDBEVERY_OFF.CMD" Name="syncthing_strecheckdbevery_off.cmd" Source="SourceDir\syncthing_strecheckdbevery_off.cmd" />
-				<File Id="SYNCTHING_STRECHECKDBEVERY_ON.CMD" Name="syncthing_strecheckdbevery_on.cmd" Source="SourceDir\syncthing_strecheckdbevery_on.cmd" />
 				<File Id="SYNCTHING_UPGRADE.CMD" Name="syncthing_upgrade.cmd" Source="SourceDir\syncthing_upgrade.cmd" />
 				<File Id="SYNCTHING_WEBUI.CMD" Name="syncthing_webui.cmd" Source="SourceDir\syncthing_webui.cmd" />
 				<File Id="NSSM_X86.EXE" Name="nssm_x86.exe" Source="SourceDir\nssm_x86.exe" KeyPath="yes" />
