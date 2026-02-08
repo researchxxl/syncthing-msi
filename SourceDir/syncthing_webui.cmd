@@ -31,7 +31,7 @@ REM 	IF NOT EXIST %CONFIG_XML% call :logAdd "[ERROR] CONFIG_XML=[%CONFIG_XML%] d
 REM 	FOR /F "tokens=2 delims=:" %%A in ('TYPE %CONFIG_XML% 2^>NUL: ^| psreplace "(<gui.*?</gui>)" "$1" ^| findstr /I /R /C:"<address>.*:.*</address>" ^| psreplace "<.*?>"') DO SET WEB_UI_PORT=%%A
 REM 
 REM Detect which port Syncthing is listening on.
-FOR /F "tokens=*" %%A in ('powershell -NoLogo -NoProfile -ExecutionPolicy ByPass -Command "Write-Host (Get-NetTCPConnection -State Listen -OwningProcess (Get-Process -Name \"syncthing\").Id | ForEach { Write-Host $_.LocalPort })" 2^>NUL:') DO call :probeWebUiPort %%A
+FOR /F "tokens=*" %%A in ('powershell.exe -NoLogo -NoProfile -ExecutionPolicy ByPass -Command "Write-Host (Get-NetTCPConnection -State Listen -OwningProcess (Get-Process -Name \"syncthing\").Id | ForEach { Write-Host $_.LocalPort })" 2^>NUL:') DO call :probeWebUiPort %%A
 REM 
 goto :eof
 
@@ -48,7 +48,7 @@ SET TMP_PWUP_PORT=%1
 IF NOT DEFINED TMP_PWUP_PORT call :logAdd "[ERROR] probeWebUiPort: Param #1 port missing." & goto :eof
 REM 
 call :logAdd "[INFO] Probing tcp %TMP_PWUP_PORT% ..."
-powershell -NoLogo -NoProfile -ExecutionPolicy ByPass -Command "(Invoke-WebRequest -uri \"http://localhost:%TMP_PWUP_PORT%\").Headers.Keys" 2>&1 | findstr /i /c:"X-Syncthing-Id" /c:"Not Authorized" >NUL: && (call :logAdd "[INFO] Found Syncthing Web UI on tcp %TMP_PWUP_PORT%." & SET WEB_UI_PORT=%TMP_PWUP_PORT%)
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy ByPass -Command "(Invoke-WebRequest -uri \"http://localhost:%TMP_PWUP_PORT%\").Headers.Keys" 2>&1 | findstr /i /c:"X-Syncthing-Id" /c:"Not Authorized" >NUL: && (call :logAdd "[INFO] Found Syncthing Web UI on tcp %TMP_PWUP_PORT%." & SET WEB_UI_PORT=%TMP_PWUP_PORT%)
 REM 
 goto :eof
 

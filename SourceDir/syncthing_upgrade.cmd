@@ -335,7 +335,7 @@ REM
 call :logAdd "[INFO] editConfigUpdateDevice: device['%TMP_ECUD_DEVICE_ID%'].%TMP_ECUD_DEVICE_ATTRIBUTE_NAME%='%TMP_ECUD_DEVICE_ATTRIBUTE_VALUE%'"
 REM 
 IF NOT EXIST %CONFIG_XML% call :logAdd "[ERROR] editConfigUpdateDevice: CONFIG_XML not found. " & goto :eof
-powershell -NoLogo -NoProfile -ExecutionPolicy ByPass -Command "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); ($xml.SelectSingleNode(\"/configuration/device[@id = '%TMP_ECUD_DEVICE_ID%']\")).%TMP_ECUD_DEVICE_ATTRIBUTE_NAME%='%TMP_ECUD_DEVICE_ATTRIBUTE_VALUE%';$xml.Save('%CONFIG_XML%')" 2> NUL:
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy ByPass -Command "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); ($xml.SelectSingleNode(\"/configuration/device[@id = '%TMP_ECUD_DEVICE_ID%']\")).%TMP_ECUD_DEVICE_ATTRIBUTE_NAME%='%TMP_ECUD_DEVICE_ATTRIBUTE_VALUE%';$xml.Save('%CONFIG_XML%')" 2> NUL:
 REM 
 goto :eof
 

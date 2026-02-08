@@ -4,7 +4,9 @@ on:
   workflow_dispatch:
 
 permissions:
+  attestations: write
   contents: write
+  id-token: write
 
 jobs:
   build:
@@ -92,6 +94,12 @@ jobs:
         with:
           name: syncthing-msi
           path: Syncthing.msi
+
+      - name: Create GitHub build provenance attestations
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
+        if: github.repository_owner == 'researchxxl'
+        with:
+          subject-path: ./Syncthing.msi
 
       - name: Create GitHub Release Draft
         uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # v1.1.4
