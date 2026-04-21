@@ -48,7 +48,7 @@ SET TMP_PWUP_PORT=%1
 IF NOT DEFINED TMP_PWUP_PORT call :logAdd "[ERROR] probeWebUiPort: Param #1 port missing." & goto :eof
 REM 
 call :logAdd "[INFO] Probing tcp %TMP_PWUP_PORT% ..."
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy ByPass -Command "(Invoke-WebRequest -uri \"http://localhost:%TMP_PWUP_PORT%\").Headers.Keys" 2>&1 | findstr /i /c:"X-Syncthing-Id" /c:"Not Authorized" >NUL: && (call :logAdd "[INFO] Found Syncthing Web UI on tcp %TMP_PWUP_PORT%." & SET WEB_UI_PORT=%TMP_PWUP_PORT%)
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy ByPass -Command "(Invoke-WebRequest -UseBasicParsing -uri \"http://localhost:%TMP_PWUP_PORT%\").Headers.Keys" 2>&1 | findstr /i /c:"X-Syncthing-Id" /c:"Not Authorized" >NUL: && (call :logAdd "[INFO] Found Syncthing Web UI on tcp %TMP_PWUP_PORT%." & SET WEB_UI_PORT=%TMP_PWUP_PORT%)
 REM 
 goto :eof
 
