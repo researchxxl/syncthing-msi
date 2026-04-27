@@ -73,6 +73,7 @@
 				<File Id="SYNCTHING_REMOVE.CMD" Name="syncthing_remove.cmd" Source="SourceDir\syncthing_remove.cmd" />
 				<File Id="SYNCTHING_SERVICE.CMD" Name="syncthing_service.cmd" Source="SourceDir\syncthing_service.cmd" />
 				<File Id="SYNCTHING_UPGRADE.CMD" Name="syncthing_upgrade.cmd" Source="SourceDir\syncthing_upgrade.cmd" />
+				<File Id="SYNCTHING_UPGRADE.PS1" Name="syncthing_upgrade.ps1" Source="SourceDir\syncthing_upgrade.ps1" />
 				<File Id="SYNCTHING_WEBUI.CMD" Name="syncthing_webui.cmd" Source="SourceDir\syncthing_webui.cmd" />
 				<File Id="NSSM_X86.EXE" Name="nssm_x86.exe" Source="SourceDir\nssm_x86.exe" KeyPath="yes" />
                 <ServiceInstall

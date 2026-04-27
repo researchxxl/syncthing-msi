@@ -59,16 +59,6 @@ REM
 goto :eof
 
 
-:applyPolicyDataTcpPort
-REM
-call :regQueryToVar "%REG_SYNCTHING%" "dataTcpPort" "REG_SZ" "dataTcpPort"
-IF NOT DEFINED dataTcpPort SET dataTcpPort=22000
-call :editConfigXml "<listenAddress>default<\/listenAddress>" "<listenAddress>tcp4://:%dataTcpPort%</listenAddress>"
-call :editConfigXml "<listenAddress>tcp4://.*<\/listenAddress>" "<listenAddress>tcp4://:%dataTcpPort%</listenAddress>"
-REM
-goto :eof
-
-
 :applyPolicyEnableGlobalDiscovery
 REM
 call :regQueryToVar "%REG_SYNCTHING%" "enableGlobalDiscovery" "REG_SZ" "enableGlobalDiscovery"
@@ -148,11 +138,11 @@ IF NOT DEFINED defaultVersioningMode SET defaultVersioningMode=none
 REM
 SET CONFIG_XML_NQ=%CONFIG_XML:"=%
 REM
-powershell -ExecutionPolicy ByPass "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); $versioningNode = $xml.SelectSingleNode('//configuration/defaults/folder/versioning'); $versioningNode.SetAttribute('type', $ENV:defaultVersioningMode); $xml.Save('%CONFIG_XML%');"
+powershell -NoLogo -NoProfile -ExecutionPolicy ByPass "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); $versioningNode = $xml.SelectSingleNode('//configuration/defaults/folder/versioning'); $versioningNode.SetAttribute('type', $ENV:defaultVersioningMode); $xml.Save('%CONFIG_XML%');"
 REM
-IF "%defaultVersioningMode%" == "trashcan" powershell -ExecutionPolicy ByPass "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); $versioningNode = $xml.SelectSingleNode('//configuration/defaults/folder/versioning'); $paramNode = $xml.SelectSingleNode('//configuration/defaults/folder/versioning/param'); if ($paramNode -eq $null) { $versioningNode.AppendChild($xml.CreateElement('param')) | Out-Null }; $xml.Save('%CONFIG_XML%');"
+IF "%defaultVersioningMode%" == "trashcan" powershell -NoLogo -NoProfile -ExecutionPolicy ByPass "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); $versioningNode = $xml.SelectSingleNode('//configuration/defaults/folder/versioning'); $paramNode = $xml.SelectSingleNode('//configuration/defaults/folder/versioning/param'); if ($paramNode -eq $null) { $versioningNode.AppendChild($xml.CreateElement('param')) | Out-Null }; $xml.Save('%CONFIG_XML%');"
 REM
-IF "%defaultVersioningMode%" == "trashcan" powershell -ExecutionPolicy ByPass "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); $paramNode = $xml.SelectSingleNode('//configuration/defaults/folder/versioning/param'); $paramNode.SetAttribute('key', 'cleanoutDays'); $paramNode.SetAttribute('val', '90'); $xml.Save('%CONFIG_XML%');"
+IF "%defaultVersioningMode%" == "trashcan" powershell -NoLogo -NoProfile -ExecutionPolicy ByPass "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); $paramNode = $xml.SelectSingleNode('//configuration/defaults/folder/versioning/param'); $paramNode.SetAttribute('key', 'cleanoutDays'); $paramNode.SetAttribute('val', '90'); $xml.Save('%CONFIG_XML%');"
 REM
 goto :eof
 
@@ -190,27 +180,6 @@ REM
 REM Update existing device.
 call :logAdd "[INFO] Device [%addDeviceID%] already present in [config.xml]."
 call :editConfigUpdateDevice "%addDeviceID%" "address" "%TMP_ADTC_SERVER_ADDR%"
-REM 
-goto :eof
-
-
-:addRelayListenerToConfig
-REM 
-REM Syntax:
-REM 	call :addRelayListenerToConfig
-REM 
-REM Called By:
-REM 	MAIN
-REM 
-REM Global Variables.
-REM 	[IN] CONFIG_XML
-REM 
-SET TMP_ARLTC_LISTENADDRESS_ALREADY_PRESENT=0
-TYPE %CONFIG_XML% 2>NUL: | findstr /I /R /C:".*<listenAddress>dynamic+https://relays.syncthing.net/endpoint</listenAddress>.*" 1>NUL: && SET TMP_ARLTC_LISTENADDRESS_ALREADY_PRESENT=1
-IF "%TMP_ARLTC_LISTENADDRESS_ALREADY_PRESENT%" == "1" call :logAdd "[INFO] addRelayListenerToConfig: Relay listenAddress already present in [config.xml]. Skipping ..." & goto :eof
-REM 
-call :logAdd "[INFO] addRelayListenerToConfig: Adding relay listener."
-call :editConfigXml "(.*<listenAddress>.*</listenAddress>)" "$1§r§n        <listenAddress>dynamic+https://relays.syncthing.net/endpoint</listenAddress>"
 REM 
 goto :eof
 
@@ -267,10 +236,10 @@ IF NOT "%COPY_RESULT%" == "0" call :logAdd "[WARN] Backup config FAILED with cod
 REM
 call :writeSamplePoliciesToReg
 REM
+powershell -NoLogo -NoProfile -ExecutionPolicy ByPass -File "%SCRIPT_PATH%\syncthing_upgrade.ps1"
+REM
 call :applyPolicyUpgrade
 call :applyPolicyRemoteWebUi
-call :applyPolicyDataTcpPort
-call :addRelayListenerToConfig
 REM
 call :applyPolicyEnableGlobalDiscovery
 call :applyPolicyEnableLocalDiscovery
@@ -455,7 +424,7 @@ for /f "tokens=3* delims= " %%A in ('reg query "%TMP_RQTV_REG_KEY%" /v "%TMP_RQT
 	IF "%%B" == "" SET "%TMP_RQTV_REG_ENTRY_ENV_VAR%=%%A"
 	IF NOT "%%B" == "" SET "%TMP_RQTV_REG_ENTRY_ENV_VAR%=%%A %%B"
 )
-IF NOT DEFINED %TMP_RQTV_REG_ENTRY_ENV_VAR% call :logAdd "[WARN] regQueryToVar: Failed query [%TMP_RQTV_REG_KEY%]:[%TMP_RQTV_REG_ENTRY_NAME%]:[%TMP_RQTV_REG_ENTRY_TYPE%]." & SET "REG_QUERIES_SUCCEEDED=0" &goto :eof
+IF NOT DEFINED %TMP_RQTV_REG_ENTRY_ENV_VAR% SET "REG_QUERIES_SUCCEEDED=0" &goto :eof
 call :logAdd "[INFO] regQueryToVar: Got %TMP_RQTV_REG_ENTRY_ENV_VAR%=[%%%TMP_RQTV_REG_ENTRY_ENV_VAR%%%]"
 REM 
 goto :eof
@@ -465,7 +434,7 @@ goto :eof
 REM
 SET CONFIG_XML_NQ=%CONFIG_XML:"=%
 REM
-powershell -ExecutionPolicy ByPass "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); $defaultFolderNode = $xml.SelectSingleNode('//configuration/defaults/folder'); $defaultFolderNode.SetAttribute('ignorePerms', 'true'); $xml.Save('%CONFIG_XML%');"
+powershell -NoLogo -NoProfile -ExecutionPolicy ByPass "$xml = New-Object XML; $xml.PreserveWhitespace = $true; $xml.Load('%CONFIG_XML%'); $defaultFolderNode = $xml.SelectSingleNode('//configuration/defaults/folder'); $defaultFolderNode.SetAttribute('ignorePerms', 'true'); $xml.Save('%CONFIG_XML%');"
 REM
 goto :eof
 
@@ -511,7 +480,7 @@ SET SYNCTHING_EXE_SHORT=syncthing.exe
 REM 
 REM Get Syncthing executable FullFN.
 SET SYNCTHING_EXE=
-FOR /f "tokens=*" %%i in ('powershell "(Get-Item -LiteralPath '%SYNCTHING_EXE_SHORT%').FullName"') DO SET SYNCTHING_EXE=%%i
+FOR /f "tokens=*" %%i in ('powershell -NoLogo -NoProfile "(Get-Item -LiteralPath '%SYNCTHING_EXE_SHORT%').FullName"') DO SET SYNCTHING_EXE=%%i
 IF NOT EXIST "%SYNCTHING_EXE%" call :logAdd "[ERROR] Could not resolve Syncthing EXE FullFN." & goto :eof
 REM 
 REM Configure Windows Firewall
@@ -569,9 +538,9 @@ REG ADD "%REG_SYNCTHING%\Example" /v "addDeviceHost" /t REG_SZ /d "localhost.loc
 REG ADD "%REG_SYNCTHING%\Example" /v "addDeviceID" /t REG_SZ /d "CF6WMOG-F4RHVKW-2FTJONJ-GJ3FZQS-YW5TJVW-VDDT6ZQ-EVJ2WDP-RL4QZQO" /f >NUL:
 REG ADD "%REG_SYNCTHING%\Example" /v "addDevicePort" /t REG_SZ /d "22000" /f >NUL:
 REM
-REG ADD "%REG_SYNCTHING%\Example" /v "dataTcpPort" /t REG_SZ /d "22000" /f >NUL:
 REG ADD "%REG_SYNCTHING%\Example" /v "defaultVersioningMode" /t REG_SZ /d "none" /f >NUL:
 REG ADD "%REG_SYNCTHING%\Example" /v "enableAutoUpgrade" /t REG_SZ /d "1" /f >NUL:
+REG ADD "%REG_SYNCTHING%\Example" /v "listenAddresses" /t REG_SZ /d "tcp4://:22000, dynamic+https://relays.syncthing.net/endpoint" /f >NUL:
 REM
 REG ADD "%REG_SYNCTHING%\Example" /v "enableGlobalDiscovery" /t REG_SZ /d "1" /f >NUL:
 REG ADD "%REG_SYNCTHING%\Example" /v "enableLocalDiscovery" /t REG_SZ /d "1" /f >NUL:

@@ -26,4 +26,5 @@ SourceDir/*
 # include tracked files
 # !SourceDir/nssm_x86.exe
 !SourceDir/*.cmd
+!SourceDir/*.ps1
 !SourceDir/syncthing.ico
