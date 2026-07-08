@@ -90,7 +90,7 @@
 				</ServiceInstall>
 				<!--<RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\$(var.Property_ServiceName)" Type="integer" Name="DelayedAutostart" Value="1"/>-->
 				<RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\$(var.Property_ServiceName)\Parameters" Type="expandable" Name="AppDirectory" Value="[ProductDir]"/>
-				<RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\$(var.Property_ServiceName)\Parameters" Type="expandable" Name="Application" Value="[ProductDir]\syncthing_service.cmd"/>
+				<RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\$(var.Property_ServiceName)\Parameters" Type="expandable" Name="Application" Value="[ProductDir]syncthing_service.cmd"/>
 				<RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\$(var.Property_ServiceName)\Parameters" Type="multiString" Name="AppEnvironmentExtra" Value="STHOMEDIR=[CommonAppDataProductFolder]"/>
 				<RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\$(var.Property_ServiceName)\Parameters" Type="expandable" Name="AppParameters" Value="serve --no-console --no-browser"/>
 				<RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\$(var.Property_ServiceName)\Parameters" Type="integer" Name="AppStopMethodSkip" Value="8"/>
