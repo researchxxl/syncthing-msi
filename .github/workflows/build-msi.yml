@@ -90,7 +90,7 @@ jobs:
             -sw1076 -sval
 
       - name: Upload MSI artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: syncthing-msi
           path: Syncthing.msi
@@ -101,23 +101,15 @@ jobs:
         with:
           subject-path: ./Syncthing.msi
 
-      - name: Create GitHub Release Draft
-        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # v1.1.4
-        id: create_release
-        with:
-          draft: true
-          prerelease: false
-          tag_name: "v${{ steps.product_version.outputs.pv }}"
-          release_name: "Syncthing MSI v${{ steps.product_version.outputs.pv }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Rename MSI
+        run: mv "Syncthing.msi" "Syncthing_v${{ steps.product_version.outputs.pv }}.msi"
 
-      - name: Upload MSI to GitHub Release
-        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1.0.2
+      - name: Create draft release
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "./Syncthing.msi"
-          asset_name: "Syncthing_v${{ steps.product_version.outputs.pv }}.msi"
-          asset_content_type: application/octet-stream
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: "v${{ steps.product_version.outputs.pv }}"
+          artifacts: "./Syncthing_v${{ steps.product_version.outputs.pv }}.msi"
+          artifactErrorsFailBuild: true
+          name: "Syncthing MSI v${{ steps.product_version.outputs.pv }}"
+          prerelease: ${{ contains(steps.product_version.outputs.pv, '-rc.') }}
+          draft: true
